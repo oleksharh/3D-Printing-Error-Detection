@@ -1,0 +1,12 @@
+.idea/
+full_dataset/
+test/
+phase1/local_data/
+csvs/
+venv/
+__pycache__/
+*.pyc
+*.pkl
+lightning_logs/
+checkpoints/
+logs/
