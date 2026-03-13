@@ -39,7 +39,9 @@ class ResidualAttentionModel_56(nn.Module):
             nn.ReLU(inplace=True),
             nn.AvgPool2d(kernel_size=7, stride=1),
         )  # scalar
-        self.fc = nn.Linear(2048, 10)  # fully connected
+        self.fc = nn.Linear(
+            2048, 3
+        )  # fully connected, classes don't matter it's going to be overwritten in the classifier class
 
     def forward(self, x):
         out = self.conv1(x)
