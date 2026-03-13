@@ -29,14 +29,16 @@ if __name__ == "__main__":
     )
     model.eval()
 
+    dataset_cfg = get_dataset_config(0)
+
     data = ParametersDataModule(
         batch_size=BATCH_SIZE,
         data_dir=DATA_DIR,
-        csv_file=DATA_CSV,
-        dataset_name=DATASET_NAME,
+        csv_file=dataset_cfg["csv_path"],
+        dataset_name=dataset_cfg["name"],
         per_img_normalisation=True,
-        mean=DATASET_MEAN,
-        std=DATASET_STD,
+        mean=dataset_cfg["mean"],
+        std=dataset_cfg["std"],
         transform=False,
     )
     data.setup('test')
