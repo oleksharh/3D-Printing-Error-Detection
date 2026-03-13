@@ -10,18 +10,18 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ParametersDataset(Dataset):
     def __init__(
-            self,
-            csv_file,
-            root_dir,
-            image_dim=(320, 320),
-            pre_crop_transform=None,
-            post_crop_transform=None,
-            regression=False,
-            flow_rate=False,
-            feed_rate=False,
-            z_offset=False,
-            hotend=False,
-            per_img_normalisation=False,
+        self,
+        csv_file,
+        root_dir,
+        image_dim=(320, 320),
+        pre_crop_transform=None,
+        post_crop_transform=None,
+        regression=False,
+        flow_rate=False,
+        feed_rate=False,
+        z_offset=False,
+        hotend=False,
+        per_img_normalisation=False,
     ):
         self.dataframe = pd.read_csv(csv_file)
         self.root_dir = root_dir

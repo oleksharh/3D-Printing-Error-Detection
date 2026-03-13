@@ -38,14 +38,6 @@ class ParametersDataModule(pl.LightningDataModule):
         self.transform = transform
         self.workers = workers
 
-        # FOR SMALL DATASET TESTING PURPOSES ONLY (<10 Samples)
-        # self.pre_crop_transform = None
-        # self.post_crop_transform = transforms.Compose([
-        #     transforms.Resize(224),
-        #     transforms.ToTensor(),
-        #     transforms.Normalize(self.mean, self.std),
-        # ])
-
         if self.transform:
             self.pre_crop_transform = transforms.Compose(
                 [
@@ -84,26 +76,6 @@ class ParametersDataModule(pl.LightningDataModule):
         self.use_z_offset = z_offset
         self.use_hotend = hotend
 
-# FOR SMALL DATASET TESTING PURPOSES ONLY (<10 Samples)
-    # def setup(self, stage=None, save=False, test_all=False):
-    #     self.dataset = ParametersDataset(
-    #         csv_file=self.csv_file,
-    #         root_dir=self.data_dir,
-    #         image_dim=self.image_dim,
-    #         pre_crop_transform=None,
-    #         post_crop_transform=self.post_crop_transform,
-    #         flow_rate=self.use_flow_rate,
-    #         feed_rate=self.use_feed_rate,
-    #         z_offset=self.use_z_offset,
-    #         hotend=self.use_hotend,
-    #         per_img_normalisation=self.per_img_normalisation,
-    #     )
-    #
-    #     # Use the SAME data for everything (intentional)
-    #     self.train_dataset = self.dataset
-    #     self.val_dataset = self.dataset
-    #     self.test_dataset = self.dataset
-
     def setup(self, stage=None, save=False, test_all=False):
         # Assign train/val datasets for use in dataloaders
         self.dataset = ParametersDataset(
@@ -118,6 +90,7 @@ class ParametersDataModule(pl.LightningDataModule):
             hotend=self.use_hotend,
             per_img_normalisation=self.per_img_normalisation,
         )
+        
         train_size, val_size = int(0.7 * len(self.dataset)), int(
             0.2 * len(self.dataset)
         )

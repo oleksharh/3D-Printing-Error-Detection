@@ -10,3 +10,4 @@ __pycache__/
 lightning_logs/
 checkpoints/
 logs/
+stages/stage2/full_dataset.csv

@@ -17,29 +17,29 @@ class ResidualAttentionModel_56(nn.Module):
             nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-        )
-        self.mpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.residual_block1 = ResidualBlock(64, 256)
+        )  # 112 x 112
+        self.mpool1 = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)  # 56 x 56
+        self.residual_block1 = ResidualBlock(64, 256)  # 56 x 56
         self.attention_module1 = AttentionModule_stage1(
             256, 256, retrieve_mask=self.retrieve_masks
-        )
-        self.residual_block2 = ResidualBlock(256, 512, 2)
+        )  # 56 x 56
+        self.residual_block2 = ResidualBlock(256, 512, stride=2)  # 28 x 28
         self.attention_module2 = AttentionModule_stage2(
             512, 512, retrieve_mask=self.retrieve_masks
-        )
-        self.residual_block3 = ResidualBlock(512, 1024, 2)
+        )  # 28 x 28
+        self.residual_block3 = ResidualBlock(512, 1024, stride=2)  # 14 x 14
         self.attention_module3 = AttentionModule_stage3(
             1024, 1024, retrieve_mask=self.retrieve_masks
-        )
-        self.residual_block4 = ResidualBlock(1024, 2048, 2)
-        self.residual_block5 = ResidualBlock(2048, 2048)
-        self.residual_block6 = ResidualBlock(2048, 2048)
+        )  # 14 x 14
+        self.residual_block4 = ResidualBlock(1024, 2048, stride=2)  # 7 x 7
+        self.residual_block5 = ResidualBlock(2048, 2048)  # 7 x 7
+        self.residual_block6 = ResidualBlock(2048, 2048)  # 7 x 7
         self.mpool2 = nn.Sequential(
             nn.BatchNorm2d(2048),
             nn.ReLU(inplace=True),
             nn.AvgPool2d(kernel_size=7, stride=1),
-        )
-        self.fc = nn.Linear(2048, 10)
+        )  # scalar
+        self.fc = nn.Linear(2048, 10)  # fully connected
 
     def forward(self, x):
         out = self.conv1(x)

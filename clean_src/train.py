@@ -86,12 +86,14 @@ if __name__ == "__main__":
         transfer=False,
     )
 
-    # model = ParametersClassifier.load_from_checkpoint("checkpoints/26022026/1234/MHResAttNet-dataset_single_layer-26022026-epoch=28-val_loss=2.92-val_acc=0.68.ckpt")
+    # model = ParametersClassifier.load_from_checkpoint(
+    #     "C:/FYP/checkpoints/stage1/MHResAttNet-initial_layer_dataset-11032026-epoch=39-val_loss=0.62-val_acc=0.95.ckpt"
+    # )
 
     data = ParametersDataModule(
         batch_size=BATCH_SIZE,
-        data_dir=DATA_DIR,
-        csv_file=dataset_cfg["csv_path"],
+        data_dir=DATA_DIR, # images themselves
+        csv_file=dataset_cfg["csv_path"], # print telemetry and image labels
         dataset_name=dataset_cfg["name"],
         per_img_normalisation=True,
         mean=dataset_cfg["mean"],

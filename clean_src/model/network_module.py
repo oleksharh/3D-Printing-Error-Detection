@@ -12,6 +12,7 @@ from datetime import datetime
 import pandas as pd
 import os
 
+
 class ParametersClassifier(pl.LightningModule):
     def __init__(
         self,
@@ -33,16 +34,25 @@ class ParametersClassifier(pl.LightningModule):
             retrieve_layers=retrieve_layers, retrieve_masks=retrieve_masks
         )
         num_ftrs = self.attention_model.fc.in_features
-        self.attention_model.fc = nn.Identity()
+        self.attention_model.fc = (
+            nn.Identity()
+        )  # removes the original fully connected layer and replaces it with an identity
+        # function so that the output is the features before the fc layer
+
+        # Adds own multi head fc layers for each of 4 to classify
         self.fc1 = nn.Linear(num_ftrs, num_classes)
         self.fc2 = nn.Linear(num_ftrs, num_classes)
         self.fc3 = nn.Linear(num_ftrs, num_classes)
         self.fc4 = nn.Linear(num_ftrs, num_classes)
 
         if transfer:
-            for child in list(self.attention_model.children())[:-trainable_layers]:
-                for param in child.parameters():
-                    param.requires_grad = False
+            # NOTE: Pointless slicing it, we use identity above to remove the original fc layer,
+            # so everything can be freezed
+            for param in self.attention_model.parameters():
+                param.requires_grad = False
+            # for child in list(self.attention_model.children())[:-trainable_layers]:
+            #     for param in child.parameters():
+            #         param.requires_grad = False
         self.save_hyperparameters()
 
         metric_conf = {"task": "multiclass", "num_classes": num_classes}
@@ -101,13 +111,10 @@ class ParametersClassifier(pl.LightningModule):
         }
 
     def training_step(self, train_batch, batch_idx):
+        # TODO: Validation step and test steps essentialy are the same first ~15 lines
+        # thus refactor them int a common function to avoid code duplication
         x, y = train_batch
-        y_hats = self.forward(x)
-        # # self.log("y_hats_type", str(type(y_hats)), on_step=True, on_epoch=True)
-        # if type(y_hats) == tuple:
-        #     y_hat0, y_hat1, y_hat2, y_hat3 = y_hats[0]
-        #     # print("Retrieved layers:", y_hats[1])
-        # else:
+        y_hats = self.forward(x)  # TODO: Handle retrieve layers/masks case
         y_hat0, y_hat1, y_hat2, y_hat3 = y_hats
         y = y.t()
 
@@ -221,11 +228,6 @@ class ParametersClassifier(pl.LightningModule):
     def validation_step(self, val_batch, batch_idx):
         x, y = val_batch
         y_hats = self.forward(x)
-        # # self.log("y_hats_type", str(type(y_hats)), on_step=True, on_epoch=True)
-        # if type(y_hats) == tuple:
-        #     y_hat0, y_hat1, y_hat2, y_hat3 = y_hats[0]
-        #     # print("Retrieved layers:", y_hats[1])
-        # else:
         y_hat0, y_hat1, y_hat2, y_hat3 = y_hats
 
         y = y.t()
@@ -384,8 +386,6 @@ class ParametersClassifier(pl.LightningModule):
         self.test_step_outputs.append(output)
         return output
 
-        # return {"loss": loss, "preds": preds, "targets": y}
-
     def on_test_epoch_end(self):
         # 1. Extract data from our stored list
         preds = [output["preds"] for output in self.test_step_outputs]
@@ -404,6 +404,6 @@ class ParametersClassifier(pl.LightningModule):
             date_string = datetime.now().strftime("%H-%M_%d-%m-%y")
             torch.save(preds, "test/preds_{}.pt".format(date_string))
             torch.save(targets, "test/targets_{}.pt".format(date_string))
-        
+
         # 4. CRITICAL: Clear the list for the next run to prevent memory leaks
         self.test_step_outputs.clear()
