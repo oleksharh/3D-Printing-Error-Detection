@@ -27,7 +27,7 @@ if __name__ == "__main__":
         gpus=1,
         transfer=False,
     )
-    model.eval()
+    model.eval() # uses mean and std from training, not that it matters for testing but just to be safe
 
     dataset_cfg = get_dataset_config(0)
 
