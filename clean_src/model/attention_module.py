@@ -245,25 +245,25 @@ class AttentionModule_stage1(nn.Module):
 
     def forward(self, x):
         x = self.first_residual_blocks(x)
-        out_trunk = self.trunk_branches(x)
-        out_mpool1 = self.mpool1(x)
-        out_residual1 = self.residual1_blocks(out_mpool1)
-        out_skip1_connection = self.skip1_connection_residual_block(out_residual1)
-        out_mpool2 = self.mpool2(out_residual1)
-        out_residual2 = self.residual2_blocks(out_mpool2)
-        out_skip2_connection = self.skip2_connection_residual_block(out_residual2)
-        out_mpool3 = self.mpool3(out_residual2)
-        out_residual3 = self.residual3_blocks(out_mpool3)
-        out_interp3 = self.interpolation3(out_residual3) + out_residual2
-        out = out_interp3 + out_skip2_connection
-        out_residual4 = self.residual4_blocks(out)
-        out_interp2 = self.interpolation2(out_residual4) + out_residual1
-        out = out_interp2 + out_skip1_connection
-        out_residual5 = self.residual5_blocks(out)
-        out_interp1 = self.interpolation1(out_residual5) + out_trunk
-        out_residual6 = self.residual6_blocks(out_interp1)
-        out = (1 + out_residual6) * out_trunk
-        out_last = self.last_blocks(out)
+        out_trunk = self.trunk_branches(x) # trunk
+        out_mpool1 = self.mpool1(x) # mask
+        out_residual1 = self.residual1_blocks(out_mpool1) # mask
+        out_skip1_connection = self.skip1_connection_residual_block(out_residual1) # mask
+        out_mpool2 = self.mpool2(out_residual1) # mask
+        out_residual2 = self.residual2_blocks(out_mpool2) # mask
+        out_skip2_connection = self.skip2_connection_residual_block(out_residual2) # mask
+        out_mpool3 = self.mpool3(out_residual2) # mask
+        out_residual3 = self.residual3_blocks(out_mpool3) # mask
+        out_interp3 = self.interpolation3(out_residual3) + out_residual2 # mask NOTE: skip conn added back to preserve initial input features
+        out = out_interp3 + out_skip2_connection # mask 
+        out_residual4 = self.residual4_blocks(out) # mask
+        out_interp2 = self.interpolation2(out_residual4) + out_residual1 # mask
+        out = out_interp2 + out_skip1_connection # mask
+        out_residual5 = self.residual5_blocks(out) # mask
+        out_interp1 = self.interpolation1(out_residual5) + out_trunk # upscaled back and added to trunk features
+        out_residual6 = self.residual6_blocks(out_interp1) # mask
+        out = (1 + out_residual6) * out_trunk # final mask applied to trunk features
+        out_last = self.last_blocks(out) # final attention output
         if self.retrieve_mask:
             return out_last, out_residual6
         return out_last

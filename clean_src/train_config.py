@@ -18,7 +18,7 @@ DATA_DIR = (
 #######################
 INITIAL_LR = 0.003
 
-BATCH_SIZE = 12
+BATCH_SIZE = 192
 MAX_EPOCHS = 50
 
 NUM_NODES = 1
@@ -83,6 +83,9 @@ def set_seed(seed):
     seed_everything(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
+
+    torch.Generator().manual_seed(seed) # this prevents data leakage possibly # TODO
+
 
 
 

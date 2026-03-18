@@ -24,6 +24,7 @@ class ParametersClassifier(pl.LightningModule):
         retrieve_layers=False,
         retrieve_masks=False,
         test_overwrite_filename=False,
+        per_img_normalisation=False,
     ):
         super().__init__()
         self.test_step_outputs = []
@@ -118,8 +119,10 @@ class ParametersClassifier(pl.LightningModule):
         y_hat0, y_hat1, y_hat2, y_hat3 = y_hats
         y = y.t()
 
-        _, preds0 = torch.max(y_hat0, 1)
-        loss0 = F.cross_entropy(y_hat0, y[0])
+        # _ = [5.1, 2.3, 1.3] - winning tensor scores,
+        # preds0 = [0, 1, 2] - winning tensor indices (class predictions)
+        _, preds0 = torch.max(y_hat0, 1) 
+        loss0 = F.cross_entropy(y_hat0, y[0]) # -ln(softmax(y_hat0))
 
         _, preds1 = torch.max(y_hat1, 1)
         loss1 = F.cross_entropy(y_hat1, y[1])
@@ -387,6 +390,7 @@ class ParametersClassifier(pl.LightningModule):
         return output
 
     def on_test_epoch_end(self):
+        # TODO: Reviw this code logic, as it's been AI written to quickly fix issue
         # 1. Extract data from our stored list
         preds = [output["preds"] for output in self.test_step_outputs]
         targets = [output["targets"] for output in self.test_step_outputs]
@@ -407,3 +411,15 @@ class ParametersClassifier(pl.LightningModule):
 
         # 4. CRITICAL: Clear the list for the next run to prevent memory leaks
         self.test_step_outputs.clear()
+
+    
+    def on_after_batch_transfer(self, batch, dataloader_idx):
+        x, y = batch
+        if self.per_img_normalisation:
+
+            mean = torch.mean(x, dim=[2, 3], keepdim=True)
+            std = torch.std(x, dim=[2, 3], keepdim=True)
+
+            x = (x - mean) / (std + 1e-8)  # Adding epsilon to prevent division by zero
+    
+        return x, y

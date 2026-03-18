@@ -26,22 +26,21 @@ if __name__ == "__main__":
         lr=INITIAL_LR,
         gpus=1,
         transfer=False,
+        per_img_normalisation=True
     )
     model.eval() # uses mean and std from training, not that it matters for testing but just to be safe
 
     dataset_cfg = get_dataset_config(0)
-
+    
     data = ParametersDataModule(
-        batch_size=BATCH_SIZE,
+        batch_size=192,
         data_dir=DATA_DIR,
         csv_file=dataset_cfg["csv_path"],
         dataset_name=dataset_cfg["name"],
         per_img_normalisation=True,
         mean=dataset_cfg["mean"],
         std=dataset_cfg["std"],
-        transform=False,
     )
-    data.setup('test')
 
     trainer = pl.Trainer(
         num_nodes=1,

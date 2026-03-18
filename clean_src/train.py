@@ -84,11 +84,23 @@ if __name__ == "__main__":
         lr=args.learning_rate,
         gpus=NUM_GPUS,
         transfer=False,
+        per_img_normalisation=True,
+
     )
 
-    # model = ParametersClassifier.load_from_checkpoint(
-    #     "C:/FYP/checkpoints/stage1/MHResAttNet-initial_layer_dataset-11032026-epoch=39-val_loss=0.62-val_acc=0.95.ckpt"
-    # )
+    if stage == 1:
+        # Technically stage 2 (Full dataset training)
+        # model = ParametersClassifier.load_from_checkpoint(
+        #     "C:/FYP/checkpoints/stage1/MHResAttNet-initial_layer_dataset-11032026-epoch=39-val_loss=0.62-val_acc=0.95.ckpt"
+        # )
+        model = ParametersClassifier.load_from_checkpoint(
+            "C:/FYP/logs/16032026-1-1234/version_1/checkpoints/MHResAttNet-full_dataset-epoch=01-val_loss=2.15-val_acc=0.79.ckpt",
+            per_img_normalisation=True
+        )
+
+        # overriding lr as loaded data has more features.
+        model.lr = args.learning_rate
+        model.per_img_normalisation = True
 
     data = ParametersDataModule(
         batch_size=BATCH_SIZE,
@@ -108,7 +120,11 @@ if __name__ == "__main__":
         max_epochs=args.epochs,
         logger=tb_logger,
         callbacks=[checkpoint_callback],
-        log_every_n_steps=1,
+        log_every_n_steps=20,
     )
 
+
+
     trainer.fit(model, data)
+
+# python clean_src/train.py -e 5 -ds 1 -w 5 -lr 0.002

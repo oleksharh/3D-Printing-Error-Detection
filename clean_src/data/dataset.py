@@ -62,11 +62,8 @@ class ParametersDataset(Dataset):
         image = image.crop((left, top, right, bottom))
 
         if self.per_img_normalisation:
-            tfms = transforms.Compose([transforms.Resize(224), transforms.ToTensor()])
-            image = tfms(image)
-            mean = torch.mean(image, dim=[1, 2])
-            std = torch.std(image, dim=[1, 2])
-            image = transforms.Normalize(mean, std)(image)
+            image = transforms.functional.resize(image, [224, 224])
+            image = transforms.functional.to_tensor(image)
         else:
             if self.post_crop_transform:
                 image = self.post_crop_transform(image)

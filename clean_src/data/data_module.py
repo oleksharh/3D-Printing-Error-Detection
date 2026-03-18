@@ -118,9 +118,16 @@ class ParametersDataModule(pl.LightningDataModule):
                     "data/{}/train.pt".format(self.dataset_name)
                 ), torch.load("data/{}/val.pt".format(self.dataset_name))
             else:
+                print("TeST ENTERED")
                 self.train_dataset, self.val_dataset, _ = torch.utils.data.random_split(
                     self.dataset, [train_size, val_size, test_size]
                 )
+                # try:
+                #     os.makedirs("data/{}/".format(self.dataset_name))
+                # except:
+                #     pass
+                # torch.save(_, "data/{}/test.pt".format(self.dataset_name))
+                # print(_.indices)  # Accessing the original dataframe from the subset
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test" or stage is None:
@@ -135,6 +142,11 @@ class ParametersDataModule(pl.LightningDataModule):
                     _, _, self.test_dataset = torch.utils.data.random_split(
                         self.dataset, [train_size, val_size, test_size]
                     )
+                    # try:
+                    #     os.makedirs("data_test/test/{}/".format(self.dataset_name))
+                    # except:
+                    #     pass
+                    # torch.save(self.test_dataset, "data_test/test/{}/test.pt".format(self.dataset_name))
 
     def train_dataloader(self):
         return DataLoader(
@@ -143,7 +155,7 @@ class ParametersDataModule(pl.LightningDataModule):
             shuffle=True,
             num_workers=self.workers,
             persistent_workers=True,
-            # prefetch_factor=2,
+            prefetch_factor=2,
             pin_memory=True,
         )
 
@@ -153,7 +165,7 @@ class ParametersDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.workers,
             persistent_workers=True,
-            # prefetch_factor=2,
+            prefetch_factor=2,
             pin_memory=True,
         )
 
@@ -163,6 +175,6 @@ class ParametersDataModule(pl.LightningDataModule):
             batch_size=self.batch_size,
             num_workers=self.workers,
             persistent_workers=True,
-            # prefetch_factor=2,
+            prefetch_factor=2,
             pin_memory=True,
         )
