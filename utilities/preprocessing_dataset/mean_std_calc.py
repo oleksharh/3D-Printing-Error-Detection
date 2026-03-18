@@ -1,42 +1,3 @@
-# import pandas as pd
-# import numpy as np
-# from PIL import Image
-# from tqdm import tqdm
-# from concurrent.futures import ProcessPoolExecutor
-
-# def process_image(path):
-#     try:
-#         # Open and normalize
-#         img = np.array(Image.open(path).convert('RGB')) / 255.0
-#         # Return mean and mean of squares for the 3 channels
-#         return np.mean(img, axis=(0, 1)), np.mean(img**2, axis=(0, 1))
-#     except Exception:
-#         return None, None
-
-# if __name__ == "__main__":
-#     df = pd.read_csv('C:/FYP/stages/initial_layer_dataset.csv')
-#     paths = df['img_path'].tolist()
-    
-#     sums = np.zeros(3)
-#     sq_sums = np.zeros(3)
-#     count = 0
-
-#     # Use max_workers=None to use all available CPU cores
-#     with ProcessPoolExecutor(max_workers=10) as executor:
-#         results = list(tqdm(executor.map(process_image, paths), total=len(paths)))
-
-#     for m, s2 in results:
-#         if m is not None:
-#             sums += m
-#             sq_sums += s2
-#             count += 1
-
-#     final_mean = sums / count
-#     final_std = np.sqrt((sq_sums / count) - (final_mean**2))
-
-#     print(f"MEAN: {final_mean.tolist()}")
-#     print(f"STD: {final_std.tolist()}")
-
 import torch
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -54,8 +15,6 @@ if project_root not in sys.path:
 from clean_src.data.dataset import ParametersDataset
 
 def calculate_global_stats(csv_path, root_dir):
-    # 1. Initialize the dataset exactly as the paper intends
-    # We use ToTensor() to get the [0, 1] range.
     dataset = ParametersDataset(
         csv_file=csv_path,
         root_dir=root_dir,
@@ -64,15 +23,14 @@ def calculate_global_stats(csv_path, root_dir):
             transforms.Resize(224),
             transforms.ToTensor()
         ]),
-        per_img_normalisation=False # Crucial: keep False for global stats
+        per_img_normalisation=False
     )
 
-    # 2. Use high num_workers for speed
     loader = DataLoader(
         dataset, 
         batch_size=256, 
         shuffle=False, 
-        num_workers=8, # Adjust based on your CPU cores
+        num_workers=8,
         pin_memory=True
     )
 
@@ -89,7 +47,7 @@ def calculate_global_stats(csv_path, root_dir):
         batch_means = images.mean(dim=(2, 3)) # [batch, 3]
         batch_stds = images.std(dim=(2, 3))   # [batch, 3]
         
-        # Sum them up to average later
+
         mean_sum += batch_means.sum(dim=0)
         std_sum += batch_stds.sum(dim=0)
         
@@ -103,7 +61,7 @@ def calculate_global_stats(csv_path, root_dir):
 if __name__ == "__main__":
     CSV_PATH = 'C:/FYP/stages/initial_layer_dataset.csv' # stage 1
     # CSV_PATH = 'C:/FYP/phase1/full_dataset.csv'
-    ROOT_DIR = 'C:/FYP/' # Or wherever the base path is
+    ROOT_DIR = 'C:/FYP/'
     
     m, s = calculate_global_stats(CSV_PATH, ROOT_DIR)
     
