@@ -102,6 +102,19 @@ if __name__ == "__main__":
         model.lr = args.learning_rate
         model.per_img_normalisation = True
 
+    if stage == 2:
+        model = ParametersClassifier.load_from_checkpoint(
+            "C:/FYP/logs/16032026-1-1234/version_2/checkpoints/MHResAttNet-full_dataset-epoch=07-val_loss=1.88-val_acc=0.82.ckpt",
+            per_img_normalisation=True,
+            transfer=True
+        )
+
+        # overriding lr as loaded data has more features.
+        model.lr = args.learning_rate
+        model.per_img_normalisation = True
+        model.transfer = True
+
+
     data = ParametersDataModule(
         batch_size=BATCH_SIZE,
         data_dir=DATA_DIR, # images themselves

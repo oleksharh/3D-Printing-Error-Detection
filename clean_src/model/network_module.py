@@ -41,19 +41,17 @@ class ParametersClassifier(pl.LightningModule):
         # function so that the output is the features before the fc layer
 
         # Adds own multi head fc layers for each of 4 to classify
-        self.fc1 = nn.Linear(num_ftrs, num_classes)
-        self.fc2 = nn.Linear(num_ftrs, num_classes)
-        self.fc3 = nn.Linear(num_ftrs, num_classes)
-        self.fc4 = nn.Linear(num_ftrs, num_classes)
+        self.fc1 = nn.Linear(num_ftrs, num_classes) # flow rate head
+        self.fc2 = nn.Linear(num_ftrs, num_classes) # late speed head    
+        self.fc3 = nn.Linear(num_ftrs, num_classes) # z offset head
+        self.fc4 = nn.Linear(num_ftrs, num_classes) # nozzle temp head
 
         if transfer:
             # NOTE: Pointless slicing it, we use identity above to remove the original fc layer,
             # so everything can be freezed
             for param in self.attention_model.parameters():
                 param.requires_grad = False
-            # for child in list(self.attention_model.children())[:-trainable_layers]:
-            #     for param in child.parameters():
-            #         param.requires_grad = False
+
         self.save_hyperparameters()
 
         metric_conf = {"task": "multiclass", "num_classes": num_classes}

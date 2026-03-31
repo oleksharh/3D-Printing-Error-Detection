@@ -14,3 +14,4 @@ stages/stage2/full_dataset.csv
 data/
 data_refactor_test/
 data_test/
+*.csv
