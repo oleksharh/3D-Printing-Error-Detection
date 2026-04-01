@@ -115,6 +115,24 @@ if __name__ == "__main__":
         model.transfer = True
 
 
+    if stage == 4:
+        BATCH_SIZE = 128
+
+        # # model = ParametersClassifier.load_from_checkpoint(
+        # #     "C:/FYP/logs/01042026-4-3482/version_4/checkpoints/MHResAttNet-initial_layer_dataset_reduced-epoch=35-val_loss=2.73-val_acc=0.72.ckpt",
+        # #     per_img_normalisation=True
+        # # )
+        # model = ParametersClassifier.load_from_checkpoint(
+        #     "C:/FYP/logs/01042026-4-3482/version_5/checkpoints/MHResAttNet-initial_layer_dataset_reduced-epoch=05-val_loss=1.95-val_acc=0.80.ckpt",
+        #     per_img_normalisation=True
+        # )
+        # model.lr = args.learning_rate
+        # model.per_img_normalisation = True
+        # model.reduce_plateau_pat = 7
+
+
+    
+
     data = ParametersDataModule(
         batch_size=BATCH_SIZE,
         data_dir=DATA_DIR, # images themselves
@@ -135,7 +153,6 @@ if __name__ == "__main__":
         callbacks=[checkpoint_callback],
         log_every_n_steps=20,
     )
-
 
 
     trainer.fit(model, data)

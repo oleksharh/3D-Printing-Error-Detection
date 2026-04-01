@@ -25,6 +25,9 @@ plt.ylim(0, max(values) + 0.05)
 for i, v in enumerate(values):
     plt.text(i, v + 0.01, f"{v:.4f}", ha="center", fontsize=10)
 plt.tight_layout()
+# plt.savefig(
+#     "C:/FYP/report_metrics/val_loss_by_param_stage1.svg", format="svg", bbox_inches="tight"
+# )
 plt.savefig(
     "C:/FYP/report_metrics/val_loss_by_param_stage2.svg", format="svg", bbox_inches="tight"
 )

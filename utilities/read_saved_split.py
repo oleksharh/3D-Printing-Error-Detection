@@ -10,6 +10,10 @@ def compare_datasets(first, second):
     print(subset_1.indices[:10], end="\n\n")    
     subset_2 = torch.load(second)
     print(subset_2.indices[:10])
+
+    print(len(subset_1.dataset.dataframe.iloc[subset_1.indices])) # creation of subset_1 test dataframe
+
+
     if subset_1.indices == subset_2.indices:
         print("Datasets are the same!")
         return True

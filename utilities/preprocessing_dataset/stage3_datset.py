@@ -2,11 +2,13 @@ import pandas as pd
 from math import inf
 from itertools import product
 
-TARGET_DIR = "C:/FYP/stages/stage3/"
+TARGET_DIR = "C:/FYP/stages/"
 
-df = pd.read_csv("C:/FYP/stages/stage2/full_dataset.csv")
+# df = pd.read_csv("C:/FYP/stages/stage2/full_dataset.csv")
 
 # df = pd.read_csv("C:/FYP/stages/stage1/initial_layer_dataset.csv")
+
+df = pd.read_csv("C:/FYP/stages/reduced_datasets/full_dataset_reduced.csv")
 
 labels_ds = {
     "flow_rate_counts": [],
@@ -17,7 +19,9 @@ labels_ds = {
 
 for i in range(0, 3):
     labels_ds["flow_rate_counts"].append(int(df.flow_rate_class.value_counts()[i]))
-    labels_ds["feed_rate_counts"].append(int(df.feed_rate_class.value_counts()[i]))
+    labels_ds["feed_rate_counts"].append(
+        int(df.feed_rate_class.value_counts()[i])
+    )  # misslabelled in the dataset, actually lateral speed
     labels_ds["z_offset_counts"].append(int(df.z_offset_class.value_counts()[i]))
     labels_ds["hotend_counts"].append(int(df.hotend_class.value_counts()[i]))
 
@@ -54,7 +58,7 @@ print(f"Balancing all 81 classes to: {min_samples} samples each.")
 
 combo_counts = df["combo"].value_counts().reset_index()
 combo_counts.columns = ["combo", "count"]
-combo_counts.to_csv("C:/FYP/report_metrics/" + "combo_counts.csv", index=False)
+# combo_counts.to_csv("C:/FYP/report_metrics/" + "reduced_combo_counts.csv", index=False)
 
 print(combo_counts)
 
@@ -69,4 +73,5 @@ print(balanced_df)
 # Final count should be 81*429 = 34749
 print(f"Final balanced dataset size: {len(balanced_df)}")
 
-# balanced_df.to_csv(TARGET_DIR + "balanced_dataset.csv", index=False)
+# balanced_df.to_csv(TARGET_DIR + "/stage3/balanced_dataset.csv", index=False)
+balanced_df.to_csv(TARGET_DIR + "/reduced_datasets/reduced_balanced_dataset.csv", index=False)

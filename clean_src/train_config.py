@@ -75,6 +75,39 @@ def get_dataset_config(dataset_switch):
             "mean": [0.5, 0.5, 0.5],
             "std": [0.05, 0.05, 0.05],
         }
+    
+    elif dataset_switch == 4:
+        return {
+            "name": "initial_layer_dataset_reduced",
+            "csv_path": os.path.join(
+                DATA_DIR,
+                "reduced_datasets/initial_layer_dataset_reduced.csv",
+            ),
+            "mean": [0.5, 0.5, 0.5],
+            "std": [0.05, 0.05, 0.05],
+        }
+    
+    elif dataset_switch == 5:
+        return {
+            "name": "full_dataset_reduced_no_seen",
+            "csv_path": os.path.join(
+                DATA_DIR,
+                "reduced_datasets/full_dataset_reduced_no_seen.csv",
+            ),
+            "mean": [0.5, 0.5, 0.5],
+            "std": [0.05, 0.05, 0.05],
+        }
+    
+    elif dataset_switch == 6:
+        return {
+            "name": "balanced_dataset_reduced",
+            "csv_path": os.path.join(
+                DATA_DIR,
+                "reduced_datasets/balanced_dataset_reduced.csv",
+            ),
+            "mean": [0.5, 0.5, 0.5],
+            "std": [0.05, 0.05, 0.05],
+        }
 
 
 def set_seed(seed):

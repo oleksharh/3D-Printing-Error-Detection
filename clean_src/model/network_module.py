@@ -25,11 +25,13 @@ class ParametersClassifier(pl.LightningModule):
         retrieve_masks=False,
         test_overwrite_filename=False,
         per_img_normalisation=False,
+        reduce_plateau_pat=None,
     ):
         super().__init__()
         self.test_step_outputs = []
 
         self.lr = lr
+        self.reduce_plateau_pat = reduce_plateau_pat
         self.__dict__.update(locals())
         self.attention_model = ResidualAttentionModel(
             retrieve_layers=retrieve_layers, retrieve_masks=retrieve_masks
@@ -100,8 +102,14 @@ class ParametersClassifier(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = AdamW(self.parameters(), self.lr)
+        
+        if self.reduce_plateau_pat:
+            red_plateau_pat = self.reduce_plateau_pat
+        else:
+            red_plateau_pat = 3
+
         scheduler = ReduceLROnPlateau(
-            optimizer, mode="min", factor=0.1, patience=3, threshold=0.01
+            optimizer, mode="min", factor=0.1, patience=red_plateau_pat, threshold=0.01
         )
         return {
             "optimizer": optimizer,

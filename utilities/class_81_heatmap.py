@@ -7,7 +7,9 @@ import pandas as pd
 import numpy as np
 from itertools import product
 
-combo_counts = pd.read_csv("C:/FYP/report_metrics/combo_counts.csv")
+# combo_counts = pd.read_csv("C:/FYP/report_metrics/combo_counts.csv")
+
+combo_counts = pd.read_csv("C:/FYP/report_metrics/reduced_combo_counts.csv")
 
 labels_axis = [
     f"{''.join(map(str, part_combo))}" for part_combo in product(range(3), repeat=2)
@@ -62,7 +64,11 @@ plt.title(
 plt.ylabel("First Two Digits (x0, x1)", fontsize=12)
 plt.xlabel("Last Two Digits (x2, x3)", fontsize=12)
 plt.tight_layout()
+# plt.savefig(
+#     "C:/FYP/report_metrics/combo_heatmap.svg", format="svg", bbox_inches="tight"
+# )
+
 plt.savefig(
-    "C:/FYP/report_metrics/combo_heatmap.svg", format="svg", bbox_inches="tight"
+    "C:/FYP/report_metrics/reduced_combo_heatmap.svg", format="svg", bbox_inches="tight"
 )
 plt.show()

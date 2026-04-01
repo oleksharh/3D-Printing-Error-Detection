@@ -118,7 +118,6 @@ class ParametersDataModule(pl.LightningDataModule):
                     "data/{}/train.pt".format(self.dataset_name)
                 ), torch.load("data/{}/val.pt".format(self.dataset_name))
             else:
-                print("TeST ENTERED")
                 self.train_dataset, self.val_dataset, _ = torch.utils.data.random_split(
                     self.dataset, [train_size, val_size, test_size]
                 )
