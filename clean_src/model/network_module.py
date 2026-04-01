@@ -398,14 +398,14 @@ class ParametersClassifier(pl.LightningModule):
         targets = torch.cat(targets, dim=1)
 
         # 3. Save to disk
-        os.makedirs("test/", exist_ok=True)
+        os.makedirs("test/final/", exist_ok=True)
         if self.test_overwrite_filename:
-            torch.save(preds, "test/preds_test.pt")
-            torch.save(targets, "test/targets_test.pt")
+            torch.save(preds, "test/final/preds_test.pt")
+            torch.save(targets, "test/final/targets_test.pt")
         else:
             date_string = datetime.now().strftime("%H-%M_%d-%m-%y")
-            torch.save(preds, "test/preds_{}.pt".format(date_string))
-            torch.save(targets, "test/targets_{}.pt".format(date_string))
+            torch.save(preds, "test/final/preds_{}.pt".format(date_string))
+            torch.save(targets, "test/final/targets_{}.pt".format(date_string))
 
         # 4. CRITICAL: Clear the list for the next run to prevent memory leaks
         self.test_step_outputs.clear()

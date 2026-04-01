@@ -18,10 +18,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     seed = args.seed
 
-    set_seed(seed)
+    set_seed(2345639)
 
     model = ParametersClassifier.load_from_checkpoint(
-        checkpoint_path="C:\\FYP\\checkpoints\\stage1\\MHResAttNet-initial_layer_dataset-11032026-epoch=39-val_loss=0.62-val_acc=0.95.ckpt",
+        # checkpoint_path="C:\\FYP\\logs\\30032026-2-1234\\version_0\\checkpoints\\MHResAttNet-balanced_dataset-epoch=17-val_loss=1.20-val_acc=0.88.ckpt",
+        checkpoint_path="C:/FYP/logs/16032026-1-1234/version_2/checkpoints/MHResAttNet-full_dataset-epoch=07-val_loss=1.88-val_acc=0.82.ckpt",
         num_classes=3,
         lr=INITIAL_LR,
         gpus=1,
@@ -30,7 +31,7 @@ if __name__ == "__main__":
     )
     model.eval() # uses mean and std from training, not that it matters for testing but just to be safe
 
-    dataset_cfg = get_dataset_config(0)
+    dataset_cfg = get_dataset_config(1)
     
     data = ParametersDataModule(
         batch_size=192,
