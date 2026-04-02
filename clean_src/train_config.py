@@ -94,8 +94,8 @@ def get_dataset_config(dataset_switch):
                 DATA_DIR,
                 "reduced_datasets/full_dataset_reduced_no_seen.csv",
             ),
-            "mean": [0.5, 0.5, 0.5],
-            "std": [0.05, 0.05, 0.05],
+            "mean": [0.2916452884674072, 0.2713455855846405, 0.13948898017406464],
+            "std": [0.12008921056985855, 0.11583106219768524, 0.10315410792827606],
         }
     
     elif dataset_switch == 6:

@@ -7,13 +7,33 @@ head_names = ["Flow Rate", "Lat Speed", "Z-Offset", "Nozzle Temp"]
 
 fig, axes = plt.subplots(1, 4, figsize=(16, 5))
 
-
+# Stage 2 FULL DATASET NOT REDUCED
 preds = (
-    torch.load("test/final/preds_03-21_01-04-26.pt", weights_only=True).cpu().numpy()
+    torch.load("test/final/preds_22-46_01-04-26.pt", weights_only=True).cpu().numpy()
 )
 targets = (
-    torch.load("test/final/targets_03-21_01-04-26.pt", weights_only=True).cpu().numpy()
+    torch.load("test/final/targets_22-46_01-04-26.pt", weights_only=True).cpu().numpy()
 )
+
+
+
+# REDUCED STAGE 1
+# preds = (
+#     torch.load("test/final/preds_22-35_01-04-26.pt", weights_only=True).cpu().numpy()
+# )
+# targets = (
+#     torch.load("test/final/targets_22-35_01-04-26.pt", weights_only=True).cpu().numpy()
+# )
+
+
+# Stage 3 FULL DATASET NOT REDUCED BALANCED
+preds = (
+    torch.load("test/final/preds_23-08_01-04-26.pt", weights_only=True).cpu().numpy()
+)
+targets = (
+    torch.load("test/final/targets_23-08_01-04-26.pt", weights_only=True).cpu().numpy()
+)
+
 
 for i in range(4):
     cm = confusion_matrix(targets[i], preds[i])
@@ -50,7 +70,7 @@ cbar.set_label("Sample Count", fontsize=11)
 plt.subplots_adjust(bottom=0.25, wspace=0.15)
 plt.tight_layout()
 plt.savefig(
-    "C:/FYP/report_metrics/test_predicitons_stage2.svg",
+    "C:/FYP/report_metrics/test_predicitons_stage3_full.svg",
     format="svg",
     bbox_inches="tight",
 )

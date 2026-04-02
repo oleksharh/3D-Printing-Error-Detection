@@ -15,3 +15,5 @@ data/
 data_refactor_test/
 data_test/
 *.csv
+*.ckpt
+*.0

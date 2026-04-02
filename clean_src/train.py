@@ -131,6 +131,15 @@ if __name__ == "__main__":
         # model.reduce_plateau_pat = 7
 
 
+    if stage == 5:
+        model = ParametersClassifier.load_from_checkpoint(
+            "C:/FYP/logs/01042026-4-3482/version_6/checkpoints/MHResAttNet-initial_layer_dataset_reduced-epoch=09-val_loss=1.93-val_acc=0.81.ckpt",
+            per_img_normalisation=True
+        )
+
+        model.lr = args.learning_rate
+        model.per_img_normalisation = True
+
     
 
     data = ParametersDataModule(

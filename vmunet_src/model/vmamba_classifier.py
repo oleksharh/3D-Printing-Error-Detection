@@ -5,7 +5,7 @@ from vmunet_src.model.vmamba import VSSM
 
 
 class VMambaMultiHeadClassifier(pl.LightningModule):
-    def __init__(self, encoder, num_classes=3, lr=0.003, per_img_normalisation=True):
+    def __init__(self, encoder, num_classes=3, lr=0.003, per_img_normalisation=True, checkpoint_path=None):
         super().__init__()
         self.encoder = encoder
         self.num_classes = num_classes
@@ -18,10 +18,15 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
         self.head_zoff = nn.Linear(hidden_dim, num_classes)
         self.head_temp = nn.Linear(hidden_dim, num_classes)
 
+        if checkpoint_path is not None:
+            self.checkpoint_path = checkpoint_path
+            self.load_from()
+
     def forward(self, x):
-        # x is [B,C,H,W]
-        x = self.encoder(x)  # [B, H, W, embed_dim]
-        x = x.mean(dim=(1, 2))
+        # x: [B,C,H,W]
+        x = self.encoder(x)        # [B, num_patches, embed_dim]
+        print(x.shape)
+        x = x.mean(dim=(1, 2))          # global average over patches -> [B, embed_dim]
 
         return {
             "flow": self.head_flow(x),
@@ -53,6 +58,12 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
         return {
             "loss": total_loss,
             "acc": (acc_flow + acc_speed + acc_zoff + acc_temp) / 4,
+            "individual_losses": {
+                "flow_loss": l_flow,
+                "speed_loss": l_speed,
+                "zoff_loss": l_zoff,
+                "temp_loss": l_temp,
+            },
             "metrics": {
                 "flow_acc": acc_flow,
                 "speed_acc": acc_speed,
@@ -62,50 +73,53 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
         }
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(
-            [
-                {"params": self.encoder.parameters(), "lr": 5e-4},  # backbone
-                {
-                    "params": list(self.head_flow.parameters())
-                    + list(self.head_speed.parameters())
-                    + list(self.head_zoff.parameters())
-                    + list(self.head_temp.parameters()),
-                    "lr": 3e-3,
-                },  # heads
-            ]
+        optimizer = torch.optim.AdamW([
+            {'params': self.encoder.parameters(), 'lr': 1e-4},
+            {'params': list(self.head_flow.parameters()) + 
+                       list(self.head_speed.parameters()) + 
+                       list(self.head_zoff.parameters()) + 
+                       list(self.head_temp.parameters()), 'lr': 1e-3}
+        ], weight_decay=0.01)
+
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, 
+            mode='min',
+            factor=0.5,
+            patience=5, 
+            min_lr=1e-6,
+            verbose=True
         )
-        return optimizer
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "val_loss_epoch",
+                "interval": "epoch",
+                "frequency": 1,
+            },
+        }
+
 
     def training_step(self, batch, batch_idx):
         step_out = self._shared_step(batch)
 
+        opt = self.optimizers()
+
+        self.log("lr_encoder", opt.param_groups[0]['lr'], on_step=True, prog_bar=True)
+        self.log("lr_heads", opt.param_groups[1]['lr'], on_step=True, prog_bar=True)
+
         self.log("train_loss", step_out["loss"], on_step=True, prog_bar=True)
         self.log("train_acc", step_out["acc"], on_step=True, prog_bar=True)
 
-        self.log(
-            "train_flow_acc",
-            step_out["metrics"]["flow_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
-        self.log(
-            "train_speed_acc",
-            step_out["metrics"]["speed_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
-        self.log(
-            "train_zoff_acc",
-            step_out["metrics"]["zoff_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
-        self.log(
-            "train_temp_acc",
-            step_out["metrics"]["temp_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
+        self.log_dict({
+            f"train_{k}": v for k, v in step_out["individual_losses"].items()
+        }, on_epoch=True, prog_bar=False)
+
+        self.log("train_flow_acc", step_out["metrics"]["flow_acc"], on_epoch=True, prog_bar=False)
+        self.log("train_speed_acc", step_out["metrics"]["speed_acc"], on_epoch=True, prog_bar=False)
+        self.log("train_zoff_acc", step_out["metrics"]["zoff_acc"], on_epoch=True, prog_bar=False)
+        self.log("train_temp_acc", step_out["metrics"]["temp_acc"], on_epoch=True, prog_bar=False)
 
         return step_out["loss"]
 
@@ -115,36 +129,23 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
         self.log("val_loss", step_out["loss"], on_step=True, prog_bar=True)
         self.log("val_acc", step_out["acc"], on_step=True, prog_bar=True)
 
-        self.log(
-            "val_flow_acc",
-            step_out["metrics"]["flow_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
-        self.log(
-            "val_speed_acc",
-            step_out["metrics"]["speed_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
-        self.log(
-            "val_zoff_acc",
-            step_out["metrics"]["zoff_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
-        self.log(
-            "val_temp_acc",
-            step_out["metrics"]["temp_acc"],
-            on_epoch=True,
-            prog_bar=False,
-        )
+        self.log_dict({
+            f"val_{k}": v for k, v in step_out["individual_losses"].items()
+        }, on_epoch=True)
+        
+
+        self.log("val_flow_acc", step_out["metrics"]["flow_acc"], on_epoch=True, prog_bar=False)
+        self.log("val_speed_acc", step_out["metrics"]["speed_acc"], on_epoch=True, prog_bar=False)
+        self.log("val_zoff_acc", step_out["metrics"]["zoff_acc"], on_epoch=True, prog_bar=False)
+        self.log("val_temp_acc", step_out["metrics"]["temp_acc"], on_epoch=True, prog_bar=False)
 
         return step_out["loss"]
 
     def on_test_epoch_end(self):
+        # preds will be a list of dicts from each test_step
         results = {}
         for key in ["flow", "speed", "zoff", "temp"]:
+            # Extract all predictions for this specific head across all batches
             head_preds = torch.cat(
                 [out["preds"][key] for out in self.test_step_outputs], dim=0
             )
@@ -155,6 +156,7 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
             )
             results[f"targets_{key}"] = head_targets
 
+        # Save the whole dictionary of tensors
         torch.save(results, "test/full_results.pt")
         self.test_step_outputs.clear()
 
@@ -167,3 +169,14 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
             imgs = (imgs - mean) / (std + 1e-8)
         labels = labels.to(self.device)
         return imgs, labels
+
+    def load_from(self):
+        print("Loading checkpoint from:", self.checkpoint_path)
+        checkpoint = torch.load(self.checkpoint_path)
+        print("Checkpoint keys:", checkpoint.keys())
+
+        self.load_state_dict(checkpoint["state_dict"])
+        print("Model loaded successfully from checkpoint.")
+        
+        
+        

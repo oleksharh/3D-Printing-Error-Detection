@@ -18,11 +18,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     seed = args.seed
 
-    set_seed(2345639)
+    set_seed(1234)
 
     model = ParametersClassifier.load_from_checkpoint(
         # checkpoint_path="C:\\FYP\\logs\\30032026-2-1234\\version_0\\checkpoints\\MHResAttNet-balanced_dataset-epoch=17-val_loss=1.20-val_acc=0.88.ckpt",
-        checkpoint_path="C:/FYP/logs/16032026-1-1234/version_2/checkpoints/MHResAttNet-full_dataset-epoch=07-val_loss=1.88-val_acc=0.82.ckpt",
+        # checkpoint_path="C:/FYP/logs/16032026-1-1234/version_2/checkpoints/MHResAttNet-full_dataset-epoch=07-val_loss=1.88-val_acc=0.82.ckpt",
+        checkpoint_path="C:/FYP/logs/30032026-2-1234/version_0/checkpoints/MHResAttNet-balanced_dataset-epoch=17-val_loss=1.20-val_acc=0.88.ckpt",
+        # checkpoint_path="C:/FYP/logs/01042026-4-3482/version_6/checkpoints/MHResAttNet-initial_layer_dataset_reduced-epoch=09-val_loss=1.93-val_acc=0.81.ckpt",
         num_classes=3,
         lr=INITIAL_LR,
         gpus=1,
