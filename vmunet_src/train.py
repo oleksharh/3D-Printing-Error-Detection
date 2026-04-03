@@ -92,7 +92,9 @@ if __name__ == "__main__":
             expand=2,
         ),
         num_classes=3,
-        checkpoint_path="/home/alex/FYP/lightning_logs/version_55/checkpoints/epoch=19-step=26480.ckpt",
+        # checkpoint_path="/home/alex/FYP/lightning_logs/version_55/checkpoints/epoch=19-step=26480.ckpt",
+        # checkpoint_path="/home/alex/FYP/lightning_logs/version_56/checkpoints/epoch=1-step=41494.ckpt",
+        checkpoint_path="/home/alex/FYP/lightning_logs/version_59/checkpoints/epoch=1-step=41494.ckpt"
     )
 
 
@@ -109,5 +111,9 @@ if __name__ == "__main__":
     )
 
     trainer.fit(model, data)
+
+# initially lr encoder 1e-4 and heads 1e-3 then added cosine annealing and weights to losses and reduced lr to 1e-5 and 1e-4 now, increase lr to 3e-5 
+
+
 
 # python -m vmunet_src.train

@@ -18,15 +18,22 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
         self.head_zoff = nn.Linear(hidden_dim, num_classes)
         self.head_temp = nn.Linear(hidden_dim, num_classes)
 
+        self.log_vars = nn.Parameter(torch.zeros(4))
+
+        # due to overfitting at epoch 4, changed back to get the same results of epoch 3
+        self.log_vars.requires_grad = False
+
         if checkpoint_path is not None:
             self.checkpoint_path = checkpoint_path
             self.load_from()
 
+        
+
     def forward(self, x):
-        # x: [B,C,H,W]
-        x = self.encoder(x)        # [B, num_patches, embed_dim]
+        # x: [B,H,W,C]
+        x = self.encoder(x)
         print(x.shape)
-        x = x.mean(dim=(1, 2))          # global average over patches -> [B, embed_dim]
+        x = x.mean(dim=(1, 2)) # global avg pool
 
         return {
             "flow": self.head_flow(x),
@@ -45,9 +52,19 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
         l_speed = loss_fn(outputs["speed"], labels[:, 1])
         l_zoff = loss_fn(outputs["zoff"], labels[:, 2])
         l_temp = loss_fn(outputs["temp"], labels[:, 3])
+##############################################################################
+        weighted_losses = []
+        raw_losses = [l_flow, l_speed, l_zoff, l_temp]
+        for i, loss in enumerate(raw_losses):
+            precision = torch.exp(-self.log_vars[i])
+            weighted_losses.append(precision * loss + self.log_vars[i])
 
-        total_loss = l_flow + l_speed + l_zoff + l_temp
+        total_loss = sum(weighted_losses)
 
+        for i, name in enumerate(['flow', 'speed', 'zoff', 'temp']):
+            self.log(f"weight_{name}", torch.exp(-self.log_vars[i]))
+            self.log(f"raw_loss_{name}", raw_losses[i])
+##############################################################################
         acc_flow = (
             (outputs["flow"].argmax(1) == labels[:, 0]).float().mean()
         )  # batch accuracy as [False, True, False, ...] -> float 1.0 or 0.0 -> mean across batch
@@ -74,31 +91,49 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW([
-            {'params': self.encoder.parameters(), 'lr': 1e-4},
+            {'params': self.encoder.parameters(), 'lr': 3e-5},
             {'params': list(self.head_flow.parameters()) + 
                        list(self.head_speed.parameters()) + 
                        list(self.head_zoff.parameters()) + 
-                       list(self.head_temp.parameters()), 'lr': 1e-3}
+                       list(self.head_temp.parameters()), 'lr': 1e-4},
+            {'params': [self.log_vars], 'lr': 1e-3}
         ], weight_decay=0.01)
 
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, 
-            mode='min',
-            factor=0.5,
-            patience=5, 
-            min_lr=1e-6,
-            verbose=True
-        )
+        # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        #     optimizer, 
+        #     mode='min',
+        #     factor=0.5,
+        #     patience=5, 
+        #     min_lr=1e-6,
+        #     verbose=True
+        # )
 
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss_epoch",
-                "interval": "epoch",
-                "frequency": 1,
-            },
-        }
+        # return {
+        #     "optimizer": optimizer,
+        #     "lr_scheduler": {
+        #         "scheduler": scheduler,
+        #         "monitor": "val_loss_epoch",
+        #         "interval": "epoch",
+        #         "frequency": 1,
+        #     },
+        # }
+
+        # HELPED AT EPOCH 3 BUt not epoch 4
+        # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        #     optimizer, 
+        #     T_max=self.trainer.estimated_stepping_batches,
+        #     eta_min=1e-6
+        # )
+
+        # return {
+        #     "optimizer": optimizer,
+        #     "lr_scheduler": {
+        #         "scheduler": scheduler,
+        #         "interval": "epoch",
+        #     },
+        # }
+
+        return optimizer
 
 
     def training_step(self, batch, batch_idx):
@@ -108,6 +143,7 @@ class VMambaMultiHeadClassifier(pl.LightningModule):
 
         self.log("lr_encoder", opt.param_groups[0]['lr'], on_step=True, prog_bar=True)
         self.log("lr_heads", opt.param_groups[1]['lr'], on_step=True, prog_bar=True)
+
 
         self.log("train_loss", step_out["loss"], on_step=True, prog_bar=True)
         self.log("train_acc", step_out["acc"], on_step=True, prog_bar=True)
